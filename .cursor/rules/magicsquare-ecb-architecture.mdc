@@ -1,0 +1,33 @@
+---
+description: ECB architecture boundaries and dependency direction
+globs: "src/magic_square/**/*.py"
+alwaysApply: false
+---
+
+# MagicSquare ECB Architecture
+
+## Layer Roles
+- `boundary`: external input/output handling (UI, API, CLI), validation, mapping.
+- `control`: use-case orchestration and flow control.
+- `entity`: domain data and domain rules (pure business logic).
+
+## Allowed Dependencies
+- `boundary -> control`
+- `control -> entity`
+- `control -> data` (optional persistence)
+
+## Forbidden Dependencies
+- `entity -> boundary/control/data`
+- `boundary -> data` directly
+- `boundary -> entity` directly (go through control)
+- `data -> entity`
+
+## Must
+- Keep domain logic in `entity`.
+- Keep transport/input/output concerns in `boundary`.
+- Keep orchestration concerns in `control`.
+
+## Checklist
+- Does this file stay in its layer responsibility?
+- Does import direction follow ECB rules?
+- Is business logic isolated from I/O?

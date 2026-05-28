@@ -1,0 +1,24 @@
+---
+description: Python style and typing standards for MagicSquare
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# MagicSquare Python Code Style
+
+## Must
+- Target Python 3.10+ syntax and typing features.
+- Follow PEP 8 style rules.
+- Keep max line length at 88 (Black-compatible).
+- Add type hints to all function/method parameters and return types.
+- Add Google-style docstrings to all public classes/functions/methods.
+- Use explicit imports; no wildcard imports.
+
+## Must Not
+- Do not add untyped public APIs.
+- Do not use `Any` unless there is a clear boundary reason.
+
+## Checklist
+- `from __future__ import annotations` added when useful.
+- Public API has type hints and Google docstrings.
+- File remains Black/Ruff compatible.
