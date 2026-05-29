@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from magic_square.boundary.duplicate import (
+    ERR_DUPLICATE_CODE,
+    ERR_DUPLICATE_MESSAGE,
+)
 from magic_square.boundary.empty_count import (
     ERR_EMPTY_COUNT_CODE,
     ERR_EMPTY_COUNT_MESSAGE,
@@ -48,6 +52,12 @@ class ScreenBoundary:
                 return FailureResult(
                     code=ERR_EMPTY_COUNT_CODE,
                     message=ERR_EMPTY_COUNT_MESSAGE,
+                )
+            nonzero = [cell for row in grid for cell in row if cell != EMPTY_CELL]
+            if len(nonzero) != len(set(nonzero)):
+                return FailureResult(
+                    code=ERR_DUPLICATE_CODE,
+                    message=ERR_DUPLICATE_MESSAGE,
                 )
         try:
             result = self._resolver.resolve(grid)
