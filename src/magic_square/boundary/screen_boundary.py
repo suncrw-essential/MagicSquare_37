@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from magic_square.boundary.errors import FailureResult
 from magic_square.boundary.invalid_size import (
+    GRID_SIZE,
     INVALID_SIZE_CODE,
     INVALID_SIZE_MESSAGE,
 )
@@ -25,7 +26,7 @@ class ScreenBoundary:
 
     def solve(self, grid: object) -> FailureResult:
         """Validate input and delegate to domain resolver when valid."""
-        if grid is None or grid == []:
+        if grid is None or grid == [] or grid == [[]] * GRID_SIZE:
             return FailureResult(
                 code=INVALID_SIZE_CODE,
                 message=INVALID_SIZE_MESSAGE,
