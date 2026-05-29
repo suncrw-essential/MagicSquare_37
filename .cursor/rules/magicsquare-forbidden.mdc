@@ -1,0 +1,27 @@
+---
+description: Forbidden coding and testing patterns for MagicSquare
+globs: "**/*.py"
+alwaysApply: true
+---
+
+# MagicSquare Forbidden Rule
+
+## Forbidden Patterns
+- `print()` for debugging in production/test code.
+- Bare exception handling (`except:` or `except Exception: pass`).
+- Weakening tests to pass (`skip`, `xfail`, assertion dilution).
+- Hardcoded domain constants where domain objects/constants should be used.
+- Layer boundary violations against ECB dependency rules.
+
+## Alternatives
+- Use structured logging or pytest capture fixtures.
+- Catch specific exceptions and re-raise when needed.
+- Fix implementation rather than relaxing tests.
+- Centralize domain constants in entity/domain value objects.
+- Route interactions through allowed ECB direction.
+
+## Enforcement Checklist
+- No debug print remains.
+- No bare except exists.
+- No test weakening patterns are introduced.
+- No new import-direction violations are introduced.

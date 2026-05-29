@@ -1,7 +1,7 @@
 # MagicSquare_30
 
 4×4 마방진(Magic Square)을 다루는 학습·실습 프로젝트입니다.  
-현재 단계는 **문제 정의(Problem Definition)**이며, **구현·설계·코드는 아직 포함하지 않습니다.**
+현재 단계는 **Dual-Track TDD · Clean Architecture 설계**까지 완료되었으며, **구현·테스트 코드는 아직 없습니다.**
 
 ---
 
@@ -74,14 +74,19 @@ Why #3  그 검증을 구현 전에 예시(계약)로 고정한다 (TDD)
 
 ---
 
+## 입출력 계약 (설계 확정)
+
+| 구분 | 규칙 |
+|------|------|
+| **입력** | `int[4][4]`, `0`=빈칸 **정확히 2개**, 값은 `0` 또는 `1~16`, 0 제외 중복 금지 |
+| **출력** | `int[6]` = `[r1,c1,n1,r2,c2,n2]` (1-index), 누락 두 수의 배치 순서는 OUT-04 규칙 |
+
+상세: [Report/02.MagicSquare_DualTrack_CleanArchitecture_Design.md](Report/02.MagicSquare_DualTrack_CleanArchitecture_Design.md)
+
 ## 아직 결정하지 않은 것
 
-구현·상세 설계 전에 고정할 항목입니다.
-
-- **1차 범위:** 검증만 vs 생성 포함
-- **입력:** 완전히 채운 격자만 vs 빈 칸·잘못된 입력 처리
-- **출력:** 만족/불만족만 vs 실패한 조건 목록
-- **언어·런타임·UI:** 미정
+- **언어·런타임·테스트 프레임워크:** 미정
+- **UI 실제 화면:** Boundary 계약만 정의됨
 
 ---
 
@@ -89,17 +94,22 @@ Why #3  그 검증을 구현 전에 예시(계약)로 고정한다 (TDD)
 
 ```
 MagicSquare_30/
-├── README.md                          ← 이 파일 (프로젝트 개요)
+├── README.md
 ├── Report/
-│   └── 01.MagicSquare_ProblemDefinition_Report.md   ← STEP 1~5 통합 보고서
+│   ├── 01.MagicSquare_ProblemDefinition_Report.md
+│   └── 02.MagicSquare_DualTrack_CleanArchitecture_Design.md
+├── Prompt/
+│   └── 02.MagicSquare_DualTrack_CleanArchitecture_Transcript.md
 └── Prompting/
-    └── 01.MagicSquare_ProblemDefinition_Reportt.md  ← Cursor 대화보내기(원문)
+    └── 01.MagicSquare_ProblemDefinition_Reportt.md
 ```
 
 | 경로 | 설명 |
 |------|------|
-| [Report/01.MagicSquare_ProblemDefinition_Report.md](Report/01.MagicSquare_ProblemDefinition_Report.md) | 문제 정의 전 과정 정리 (공식 산출물) |
-| [Prompting/01.MagicSquare_ProblemDefinition_Reportt.md](Prompting/01.MagicSquare_ProblemDefinition_Reportt.md) | 프롬프트·응답 대화 기록 |
+| [Report/01.MagicSquare_ProblemDefinition_Report.md](Report/01.MagicSquare_ProblemDefinition_Report.md) | STEP 1~5 문제 정의 |
+| [Report/02.MagicSquare_DualTrack_CleanArchitecture_Design.md](Report/02.MagicSquare_DualTrack_CleanArchitecture_Design.md) | Dual-Track · Clean Architecture 설계 (공식) |
+| [Prompt/02.MagicSquare_DualTrack_CleanArchitecture_Transcript.md](Prompt/02.MagicSquare_DualTrack_CleanArchitecture_Transcript.md) | TDD/설계 세션 대화 Export |
+| [Prompting/01.MagicSquare_ProblemDefinition_Reportt.md](Prompting/01.MagicSquare_ProblemDefinition_Reportt.md) | 문제 정의 세션 대화 Export |
 
 ---
 
@@ -110,16 +120,17 @@ MagicSquare_30/
 | 문제 인식 (STEP 1) | 완료 |
 | Why 분석 (STEP 2~4) | 완료 |
 | 진짜 문제 정의 (STEP 5) | 완료 |
-| 입출력 규약 고정 | 미착수 |
+| Dual-Track · Clean Architecture 설계 | 완료 |
+| 입출력 규약 (2-빈칸 솔버) | 완료 |
 | 구현 / 테스트 코드 | 없음 |
 
 ---
 
 ## 다음 단계 (권장 순서)
 
-1. **입출력 규약** 문서화 — 검증 계약만 1차 범위로 고정
-2. **TDD 예시 목록** — 정답 격자, I1 위반, I2 위반(한 줄만 34), 복합 반례
-3. **구현** — 계약을 만족하는 판정 기능부터 (생성은 2차)
+1. **RED 테스트** — Domain `DT-*` → UI `UT-*` → Data `ST-*` → Integration `IT-*`
+2. **구현** — Domain 솔버 → UI Boundary → File `MatrixRepository`
+3. **커버리지** — Domain 95%+ / UI 85%+ / Data 80%+
 
 ---
 
@@ -130,6 +141,8 @@ MagicSquare_30/
 | 보고서 1.0 | 2026-05-28 | STEP 1, 2, 3, 5 |
 | 보고서 1.1 | 2026-05-28 | STEP 4 (Why #3, TDD) 추가 |
 | README 1.0 | 2026-05-28 | 프로젝트 개요 최초 작성 |
+| 보고서 2.0 | 2026-05-28 | Dual-Track · Clean Architecture 설계 |
+| README 1.1 | 2026-05-28 | 설계·Prompt Export 반영 |
 
 ---
 
