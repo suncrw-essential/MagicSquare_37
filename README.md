@@ -453,6 +453,7 @@ TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid3]
 | README 1.5 | 2026-05-29 | Report/14 Phase 0 Tier 1/2, OI-01 확정, G2~G4 33/33, tests/control RED |
 | Report 14.0 | 2026-05-29 | REFACTOR 프로그램·Phase 0·OI-01·Wave 1 매핑 |
 | Report 15.0 | 2026-05-29 | REFACTOR 프로그램 준비 구현·control RED·Tier 1 검증 |
+| Report 16.0 | 2026-05-29 | Dual-Track QA 커버리지 분석 (Tier 1 충족, NFR·Tier 2 미충족) |
 
 ---
 
