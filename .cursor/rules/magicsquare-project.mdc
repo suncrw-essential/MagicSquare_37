@@ -1,0 +1,25 @@
+---
+description: MagicSquare project goals and source of truth
+alwaysApply: true
+---
+
+# MagicSquare Project Rule
+
+## Scope
+- This rule applies to all tasks in this repository.
+- Use this file for global context only.
+
+## Must
+- Follow Python 3.10+ constraints for all Python work.
+- Treat `Report/02.MagicSquare_DualTrack_CleanArchitecture_Design.md` as the primary design source.
+- Keep terminology and IDs aligned with the design doc (`IN-*`, `OUT-*`, `DT-*`, `UT-*`, `ST-*`, `IT-*`).
+- Keep focus on validation-contract correctness before optimization.
+
+## Must Not
+- Do not redefine core contracts without explicitly updating related tests and docs.
+- Do not claim completion when required test tracks are not verified.
+
+## Checklist
+- Is the change consistent with Report/02?
+- Are naming and IDs consistent with existing docs/tests?
+- Is this scoped to the requested layer only?

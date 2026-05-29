@@ -1,0 +1,32 @@
+---
+description: Dual-Track TDD and pytest AAA testing rules
+globs: "{tests/**/*.py,src/**/*.py}"
+alwaysApply: false
+---
+
+# MagicSquare TDD Testing Rule
+
+## Test Framework
+- Use `pytest`.
+- Use AAA pattern in tests (`Arrange`, `Act`, `Assert`).
+- Test file names must start with `test_`.
+
+## RED
+- Write or update a failing test first.
+- Confirm failure for the intended reason.
+
+## GREEN
+- Implement minimum code to pass the current test.
+- Keep scope limited to the current behavior.
+
+## REFACTOR
+- Improve structure without changing behavior.
+- Re-run relevant tests after refactor.
+
+## Must Not
+- Do not add behavior-changing implementation before RED.
+- Do not weaken assertions to force green.
+- Do not skip tests to bypass failures.
+
+## Coverage
+- Keep overall minimum coverage at 80% or higher.
