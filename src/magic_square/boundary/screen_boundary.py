@@ -31,5 +31,10 @@ class ScreenBoundary:
                 code=INVALID_SIZE_CODE,
                 message=INVALID_SIZE_MESSAGE,
             )
+        if isinstance(grid, list) and len(grid) != GRID_SIZE:
+            return FailureResult(
+                code=INVALID_SIZE_CODE,
+                message=INVALID_SIZE_MESSAGE,
+            )
         self._resolver.resolve(grid)
         return FailureResult(code="STUB", message="not implemented")
