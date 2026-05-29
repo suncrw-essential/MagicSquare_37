@@ -5,6 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from magic_square.boundary.errors import FailureResult
+from magic_square.boundary.invalid_size import (
+    INVALID_SIZE_CODE,
+    INVALID_SIZE_MESSAGE,
+)
 
 if TYPE_CHECKING:
     from magic_square.entity.resolver import DomainResolver
@@ -20,9 +24,11 @@ class ScreenBoundary:
         self._resolver = resolver
 
     def solve(self, grid: object) -> FailureResult:
-        """Validate input and delegate to domain resolver when valid.
-
-        RED: always invokes resolver and returns non-contract failure.
-        """
+        """Validate input and delegate to domain resolver when valid."""
+        if grid is None:
+            return FailureResult(
+                code=INVALID_SIZE_CODE,
+                message=INVALID_SIZE_MESSAGE,
+            )
         self._resolver.resolve(grid)
         return FailureResult(code="STUB", message="not implemented")
