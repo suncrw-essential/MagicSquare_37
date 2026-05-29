@@ -25,7 +25,7 @@ class ScreenBoundary:
 
     def solve(self, grid: object) -> FailureResult:
         """Validate input and delegate to domain resolver when valid."""
-        if grid is None:
+        if grid is None or grid == []:
             return FailureResult(
                 code=INVALID_SIZE_CODE,
                 message=INVALID_SIZE_MESSAGE,
