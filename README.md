@@ -452,6 +452,7 @@ TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid3]
 | README 1.4 | 2026-05-29 | 코드 리뷰 To-Do 4분류 (A~D), Report/13 링크·권장 실행 순서 반영 |
 | README 1.5 | 2026-05-29 | Report/14 Phase 0 Tier 1/2, OI-01 확정, G2~G4 33/33, tests/control RED |
 | Report 14.0 | 2026-05-29 | REFACTOR 프로그램·Phase 0·OI-01·Wave 1 매핑 |
+| Report 15.0 | 2026-05-29 | REFACTOR 프로그램 준비 구현·control RED·Tier 1 검증 |
 
 ---
 
