@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "magic-square"
+version = "0.1.0"
+description = "Magic Square 4x4 TDD practice project"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.0",
+    "PyQt6>=6.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.0",
+]
+
+[project.scripts]
+magic-square-gui = "magic_square.boundary.screen.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+markers = [
+    "golden_master: GM-2 Golden Master regression tests (pytest -m golden_master)",
+]
