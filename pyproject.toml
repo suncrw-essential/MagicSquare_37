@@ -28,4 +28,5 @@ where = ["src"]
 [tool.pytest.ini_options]
 markers = [
     "golden_master: GM-2 Golden Master regression tests (pytest -m golden_master)",
+    "control_red: Control layer RED tests (exclude from Tier 1 Phase 0; Report/14)",
 ]

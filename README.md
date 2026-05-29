@@ -85,7 +85,7 @@ Why #3  그 검증을 구현 전에 예시(계약)로 고정한다 (TDD)
 
 ## 아직 결정하지 않은 것
 
-- **계약 SSOT (OI-01):** 학습용 `INVALID_SIZE` vs PRD `ERR_GRID_ROWS`/`ERR_GRID_COLS` ([코드 리뷰 To-Do](#코드-리뷰-to-do) P1)
+- **계약 SSOT (OI-01):** **확정** — `INVALID_SIZE`/`ERR_*` 유지, `E001~E007`는 설계 별칭만 ([Report/14](Report/14.MagicSquare_REFACTOR_Program_Report.md) §3)
 - **Control 레이어 명칭:** `ApplicationService` vs `SolvePartialMagicSquare` (Report/09·`docs/test_plan.md`)
 
 ---
@@ -123,41 +123,77 @@ MagicSquare_37/
 | Dual-Track · Clean Architecture 설계 | 완료 |
 | 입출력 규약 (2-빈칸 솔버) | 완료 |
 | AC-FR-01-01 RED 테스트 (`test_ac_fr_01_01_invalid_size.py`) | 완료 (33건) |
-| AC-FR-01-01 GREEN (`grid=None`) | 완료 (G1, 16/33) |
-| AC-FR-01-01 GREEN (`[]`, `[[]]*4`, `3×4`) | 진행 중 (G2~G4) |
+| AC-FR-01-01 GREEN (G1~G4, 33/33) | 완료 — [GREEN To-Do](#green-단계-to-do-리스트) |
 | AC-FR-01-03 empty count / FR-05 success / Golden Master | 완료 |
 | Entity FR-02~05 (validator, two-blank solver) | 완료 |
-| `control/` 레이어 | 미착수 (ECB 리팩터 대상) |
-| 코드 리뷰 P0 (비-list·열 수·값 범위) | 미착수 — [코드 리뷰 To-Do](#코드-리뷰-to-do) |
+| REFACTOR Phase 0 Tier 1 | **충족** — [Report/14](Report/14.MagicSquare_REFACTOR_Program_Report.md) §2 |
+| `tests/control/` RED (D-SOL, C3 전) | **작성** — Tier 1에서 `--ignore=tests/control` |
+| `control/` 구현 | 미착수 (Wave 1 C3~C4) |
+| 코드 리뷰 카테고리 A (잔여) | 미착수 — 비-list·열/값·STUB→`ERR_INTERNAL_CONTRACT` |
 
 ---
 
 ## 코드 리뷰 To-Do
 
-> 출처: code-reviewer (2026-05-29). **REFACTOR**(validator/control 분리, `ui_boundary`, `main_window` DI)는 관련 스위트 **GREEN** + Golden Master 통과 후 진행.  
+> 출처: code-reviewer (2026-05-29).  
+> **REFACTOR 프로그램:** [Report/14.MagicSquare_REFACTOR_Program_Report.md](Report/14.MagicSquare_REFACTOR_Program_Report.md) (Phase 0 · OI-01 · Wave 1 매핑).  
+> **ECB 분석:** [Report/13.MagicSquare_ECB_Refactoring_Plan_Report.md](Report/13.MagicSquare_ECB_Refactoring_Plan_Report.md).  
 > 규칙: `.cursor/rules/magicsquare-tdd-testing.mdc` §REFACTOR, `magicsquare-ecb-architecture.mdc`, `docs/test_plan.md` §6·§8.
 
-### P0 — Critical (merge / REFACTOR 전)
+### REFACTOR Phase 0 (게이트 — Report/14 §2)
+
+| Tier | 용도 | 명령 | 상태 |
+|------|------|------|------|
+| **Tier 1** | Wave 1 C1~C2 (내부 구조, 계약 문자열 불변) | `python -m pytest tests/ --ignore=tests/control -q` + `python -m pytest tests/golden_master/ -q` | **충족** |
+| **Tier 2** | Wave 1 C3~C4 · `control/` GREEN · 카테고리 A 잔여 | `python -m pytest tests/ -q` (control 포함) + README A·D | **미충족** |
+
+> **고정:** “pytest+GM”만으로 전체 Phase 0 완료로 보지 않음. **Tier 1 → C1~C2**, **Tier 1+2 → C3~C4**.  
+> `tests/control/`는 RED(C3 전)이므로 Tier 1에서 **반드시 `--ignore=tests/control`**.
+
+### REFACTOR 카테고리 (4분류)
+
+| 카테고리 | 이름 | 한 줄 | 우선순위 |
+|----------|------|-------|----------|
+| **A** | 계약·검증 | Boundary가 무엇을 거부·반환하는가 | P0 → P1 |
+| **B** | ECB·책임 분리 | 누가 orchestration 하는가 (Control vs Entity) | P0~P1 |
+| **C** | 조립·UI 경계 | Screen이 누구를 생성·주입하는가 | P1 → P2 |
+| **D** | 테스트·REFACTOR 게이트 | 옮긴 뒤에도 행위가 같은가 | P0~P2 |
+
+**권장 실행 순서:** `A` + `D`(선행 GREEN) → `B` → `C` → `D`(전체 게이트)
+
+### A — 계약·검증
 
 - [ ] **비-list 입력 가드** — `ScreenBoundary.solve()`: `grid`가 `list`가 아니면 `FailureResult` 반환 (`None`/`[]` 제외한 `"abcd"`, `{}`, `16` 등). PRD §13 예외 전파 금지.
 - [ ] **열 수 검증 (IN-01 / AC-02)** — 각 행 `len(row) == 4` → `ERR_GRID_COLS` + 고정 message (`docs/test_plan.md` UT-A-05/06).
 - [ ] **값 범위 검증 (IN-04 / AC-04)** — 셀 ∈ `{0} ∪ [1,16]` → `ERR_VALUE_RANGE`; `tests/boundary/test_ac_fr_01_04_*` 추가.
 - [ ] **Domain 전제 위반 매핑** — `TypeError` / `IndexError` 등을 Boundary `FailureResult`로 변환 (uncaught exception 방지).
-
-### P1 — Important
-
-- [ ] **계약 SSOT (OI-01)** — 학습용 `INVALID_SIZE` vs PRD `ERR_GRID_ROWS`/`ERR_GRID_COLS` 정책 확정 후 코드·테스트·문서 일괄 정렬.
+- [x] **계약 SSOT (OI-01)** — [Report/14 §3](Report/14.MagicSquare_REFACTOR_Program_Report.md): `INVALID_SIZE`/`ERR_*` 유지, `E001~E007` 별칭만 (Wave 1 rename 금지).
 - [ ] **`STUB` 제거** — `screen_boundary.py` OUT 검증 실패 시 `ERR_INTERNAL_CONTRACT`(또는 DN-03 확정값)으로 매핑.
+
+### B — ECB·책임 분리
+
+- [ ] **`input_validator` 추출** — `screen_boundary.solve()` 인라인 검증 → 전용 클래스/모듈 (Extract Class).
 - [ ] **ECB: `control/` 도입** — `SolvePartialMagicSquare` / `ApplicationService.solve_puzzle`; `boundary → control → entity` (직접 `entity` import 금지).
+- [ ] **오케스트레이션 이동** — `two_blank_solver` / `puzzle_resolver`의 Step A/B·위임 → `control/solve_partial_magic_square.py`; 순수 배치는 `entity/services/two_cell_solver.py`.
+- [ ] **`screen_boundary` → `ui_boundary`** — Boundary facade·rename; 검증·위임·OUT 매핑 역할 분리.
+
+### C — 조립·UI 경계
+
 - [ ] **`main_window.py` DI** — `PuzzleDomainResolver` 직접 생성 제거; injected `ScreenBoundary`(또는 `ui_boundary`)만 사용.
 - [ ] **도메인 상수 SSOT** — `boundary/invalid_size.py`, `grid_panel.py`의 `GRID_SIZE`/`EMPTY_CELL` 등 → `entity/constants` 또는 control 경유.
+- [ ] **`main_window` UI 분기 단순화** — `code` 분기 중복 정리 (Simplify Conditional).
+
+### D — 테스트·REFACTOR 게이트
+
+> 구조 이동(B/C) 전에 관련 항목 GREEN. 테스트 없이 ECB 분리 금지.
+
+- [x] **AC-FR-01-01 G1~G4** — `test_ac_fr_01_01_invalid_size.py` **33/33** green.
+- [ ] **`tests/boundary/` 잔여** — AC-FR-01-04 + EX-02 비-list 케이스.
+- [ ] **OUT contract (E007)** — `STUB` 대체 후 integration 검증.
 - [ ] **Entity no-solution 단위 테스트** — `NoValidPlacementError` (GM-TC-05 격자, `tests/entity/`).
-
-### P2 — REFACTOR 선행 (테스트 없이 구조 이동 금지)
-
-- [ ] **`tests/control/`** — invalid 시 `execute`/`solve` **0회**; valid 시 `int[6]`·1-index (`docs/test_plan.md` §6, Report/09 D-SOL-01~04).
+- [x] **`tests/control/` RED** — `test_solve_partial_magic_square.py` (D-SOL-01~04, SC-CTL-001); C3 GREEN 전 **RED** (`@pytest.mark.control_red`).
+- [ ] **`tests/control/` GREEN** — `SolvePartialMagicSquare.execute` 구현 후 Tier 2 게이트.
 - [ ] **Boundary facade 격리** — Control 추출 후 `ScreenBoundary` → `ApplicationService.solve_puzzle` **0회** spy (`test_plan.md` §6.3).
-- [ ] **`tests/boundary/` GREEN 완료** — AC-FR-01-01 G2~G4 + AC-FR-01-04 + EX-02 비-list 케이스.
 - [ ] **`tests/` for `main_window`** — UI는 facade mock만; entity 직접 wiring 금지 검증 (pytest-qt 또는 로직 분리).
 - [ ] **REFACTOR 게이트** — `pytest -m golden_master` + boundary/entity/control 스위트 green, 커버리지 Boundary≥85% / Control≥85%.
 
@@ -176,10 +212,10 @@ REFACTOR는 계약·행위 불변 하에 구조만 옮기므로, GREEN 스위트
 
 ## 다음 단계 (권장 순서)
 
-1. **P0 GREEN** — [코드 리뷰 To-Do](#코드-리뷰-to-do) P0 (입력 가드·열 수·값 범위)
-2. **GREEN 구현** — AC-FR-01-01 Boundary (`ScreenBoundary`) — [GREEN To-Do](#green-단계-to-do-리스트) G2~G4
-3. **REFACTOR** — P2 완료 후 validator/control 분리 (`control/`, `ui_boundary`)
-4. **커버리지** — Domain 95%+ / Boundary 85%+ / Control 85%+
+1. **REFACTOR C1 (RF-01)** — Tier 1 게이트 유지, `ValidationResult` / `input_validator` ([Report/14](Report/14.MagicSquare_REFACTOR_Program_Report.md) Wave 1 C1)
+2. **REFACTOR C2 (RF-02)** — `STUB` → `ERR_INTERNAL_CONTRACT`, ErrorMapper
+3. **Tier 2 + C3~C4** — `control/` GREEN, 카테고리 A 잔여(비-list·열/값)
+4. **카테고리 C + D(전체 게이트)** — `main_window` DI·커버리지 Boundary/Control ≥85%
 
 ---
 
@@ -247,9 +283,9 @@ REFACTOR는 계약·행위 불변 하에 구조만 옮기므로, GREEN 스위트
 | 커밋 | 구현 범위 | 신규 GREEN | 누적 | 상태 |
 |------|-----------|------------|------|------|
 | **G1** | `grid is None` | 11 (+ Scope 5) | 16/33 | ✅ |
-| **G2** | `grid == []` (행 수 0) | +6 | 22/33 | ⬜ |
-| **G3** | `grid == [[]]*4` (4행·0열) | +5 | 27/33 | ⬜ |
-| **G4** | `grid == THREE_BY_FOUR_GRID` (3행) | +6 | 33/33 | ⬜ |
+| **G2** | `grid == []` (행 수 0) | +6 | 22/33 | ✅ |
+| **G3** | `grid == [[]]*4` (4행·0열) | +5 | 27/33 | ✅ |
+| **G4** | `grid == THREE_BY_FOUR_GRID` (3행) | +6 | 33/33 | ✅ |
 
 전체 회귀: `python -m pytest tests/boundary/test_ac_fr_01_01_invalid_size.py -q`
 
@@ -289,68 +325,63 @@ REFACTOR는 계약·행위 불변 하에 구조만 옮기므로, GREEN 스위트
 
 ---
 
-### G2 — `grid == []` (22/33)
+### G2 — `grid == []` ✅ (22/33)
 
 #### 구현
-- [ ] 빈 리스트(`grid == []`) 거부 → `INVALID_SIZE` + `"Grid must be 4x4."`
-- [ ] 실패 시 `resolve()` 미호출
-- [ ] `[[]]*4`, `3×4` 분기는 아직 구현하지 않음
+- [x] 빈 리스트(`grid == []`) 거부 → `INVALID_SIZE` + `"Grid must be 4x4."`
+- [x] 실패 시 `resolve()` 미호출
 
 #### 테스트 (6)
-- [ ] `TestAcFr0101BoundaryValues::test_empty_list_grid_returns_failure_invalid_size_code`
-- [ ] `TestAcFr0101BoundaryValues::test_empty_list_grid_returns_failure_prd_message`
-- [ ] `TestAcFr0101DomainIsolation::test_empty_list_grid_resolve_zero_calls_spy`
-- [ ] `TestAcFr0101MessageIdentity::test_empty_list_grid_message_exact_prd_section_8_1`
-- [ ] `TestAcFr0101ParametrizedContract::test_param_grid_returns_failure_invalid_size_code[grid1]`
-- [ ] `TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid1]`
+- [x] `TestAcFr0101BoundaryValues::test_empty_list_grid_returns_failure_invalid_size_code`
+- [x] `TestAcFr0101BoundaryValues::test_empty_list_grid_returns_failure_prd_message`
+- [x] `TestAcFr0101DomainIsolation::test_empty_list_grid_resolve_zero_calls_spy`
+- [x] `TestAcFr0101MessageIdentity::test_empty_list_grid_message_exact_prd_section_8_1`
+- [x] `TestAcFr0101ParametrizedContract::test_param_grid_returns_failure_invalid_size_code[grid1]`
+- [x] `TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid1]`
 
 #### 검증
-- [ ] wave 6건 PASSED
-- [ ] 전체 파일 **22 passed / 11 failed**
-- [ ] 커밋: `GREEN AC-FR-01-01: reject empty grid []`
+- [x] wave 6건 PASSED
+- [x] 전체 파일 **22 passed** (G3·G4 진행 시 잔여 failed)
 
 ---
 
-### G3 — `grid == [[]]*4` (27/33)
+### G3 — `grid == [[]]*4` ✅ (27/33)
 
 #### 구현
-- [ ] 4행·0열(`[[]]*4`) 거부 → 동일 `INVALID_SIZE` 계약
-- [ ] 실패 시 `resolve()` 미호출
-- [ ] `3×4` 분기는 아직 구현하지 않음
+- [x] 4행·0열(`[[]]*4`) 거부 → 동일 `INVALID_SIZE` 계약
+- [x] 실패 시 `resolve()` 미호출
 
 #### 테스트 (5)
-- [ ] `TestAcFr0101BoundaryValues::test_four_empty_row_lists_grid_returns_failure_invalid_size_code`
-- [ ] `TestAcFr0101DomainIsolation::test_four_empty_row_lists_resolve_zero_calls_spy`
-- [ ] `TestAcFr0101MessageIdentity::test_four_empty_row_lists_message_exact_prd_section_8_1`
-- [ ] `TestAcFr0101ParametrizedContract::test_param_grid_returns_failure_invalid_size_code[grid2]`
-- [ ] `TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid2]`
+- [x] `TestAcFr0101BoundaryValues::test_four_empty_row_lists_grid_returns_failure_invalid_size_code`
+- [x] `TestAcFr0101DomainIsolation::test_four_empty_row_lists_resolve_zero_calls_spy`
+- [x] `TestAcFr0101MessageIdentity::test_four_empty_row_lists_message_exact_prd_section_8_1`
+- [x] `TestAcFr0101ParametrizedContract::test_param_grid_returns_failure_invalid_size_code[grid2]`
+- [x] `TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid2]`
 
 #### 검증
-- [ ] wave 5건 PASSED
-- [ ] 전체 파일 **27 passed / 6 failed**
-- [ ] 커밋: `GREEN AC-FR-01-01: reject four empty row lists`
+- [x] wave 5건 PASSED
+- [x] 전체 파일 **27 passed** (G4 진행 시 잔여 failed)
 
 ---
 
-### G4 — `grid == THREE_BY_FOUR_GRID` (33/33)
+### G4 — `grid == THREE_BY_FOUR_GRID` ✅ (33/33)
 
 #### 구현
-- [ ] 3행 격자(`len(grid) == 3`) 거부 → 동일 `INVALID_SIZE` 계약
-- [ ] 실패 시 `resolve()` 미호출
-- [ ] AC-FR-01-01 파일 전체 GREEN
+- [x] 3행 격자(`len(grid) == 3`) 거부 → 동일 `INVALID_SIZE` 계약
+- [x] 실패 시 `resolve()` 미호출
+- [x] AC-FR-01-01 파일 전체 GREEN
 
 #### 테스트 (6)
-- [ ] `TestAcFr0101BoundaryValues::test_three_by_four_grid_returns_failure_invalid_size_code`
-- [ ] `TestAcFr0101BoundaryValues::test_three_by_four_grid_returns_failure_result_type`
-- [ ] `TestAcFr0101DomainIsolation::test_three_by_four_grid_resolve_zero_calls_spy`
-- [ ] `TestAcFr0101MessageIdentity::test_three_by_four_grid_message_exact_prd_section_8_1`
-- [ ] `TestAcFr0101ParametrizedContract::test_param_grid_returns_failure_invalid_size_code[grid3]`
-- [ ] `TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid3]`
+- [x] `TestAcFr0101BoundaryValues::test_three_by_four_grid_returns_failure_invalid_size_code`
+- [x] `TestAcFr0101BoundaryValues::test_three_by_four_grid_returns_failure_result_type`
+- [x] `TestAcFr0101DomainIsolation::test_three_by_four_grid_resolve_zero_calls_spy`
+- [x] `TestAcFr0101MessageIdentity::test_three_by_four_grid_message_exact_prd_section_8_1`
+- [x] `TestAcFr0101ParametrizedContract::test_param_grid_returns_failure_invalid_size_code[grid3]`
+- [x] `TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid3]`
 
 #### 검증
-- [ ] wave 6건 PASSED
-- [ ] 전체 파일 **33 passed / 0 failed**
-- [ ] 커밋: `GREEN AC-FR-01-01: reject 3x4 grid`
+- [x] wave 6건 PASSED
+- [x] 전체 파일 **33 passed / 0 failed**
 
 ---
 
@@ -408,7 +439,19 @@ TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid3]
 | 보고서 2.0 | 2026-05-28 | Dual-Track · Clean Architecture 설계 |
 | README 1.1 | 2026-05-28 | 설계·Prompt Export 반영 |
 | README 1.2 | 2026-05-29 | AC-FR-01-01 GREEN 단계 To-Do (G1~G4) 추가 |
-| README 1.3 | 2026-05-29 | 코드 리뷰 To-Do (P0~P2), 현재 상태·저장소 구조 갱신 |
+| README 1.3 | 2026-05-29 | 코드 리뷰 To-Do (### REFACTOR 카테고리 (4분류)
+
+| 카테고리 | 이름 | 한 줄 | 우선순위 |
+|----------|------|-------|----------|
+| **A** | 계약·검증 | Boundary가 무엇을 거부·반환하는가 | P0 → P1 |
+| **B** | ECB·책임 분리 | 누가 orchestration 하는가 (Control vs Entity) | P0~P1 |
+| **C** | 조립·UI 경계 | Screen이 누구를 생성·주입하는가 | P1 → P2 |
+| **D** | 테스트·REFACTOR 게이트 | 옮긴 뒤에도 행위가 같은가 | P0~P2 |
+
+**권장 실행 순서:** `A` + `D`(선행 GREEN) → `B` → `C` → `D`(전체 게이트)~P2), 현재 상태·저장소 구조 갱신 |
+| README 1.4 | 2026-05-29 | 코드 리뷰 To-Do 4분류 (A~D), Report/13 링크·권장 실행 순서 반영 |
+| README 1.5 | 2026-05-29 | Report/14 Phase 0 Tier 1/2, OI-01 확정, G2~G4 33/33, tests/control RED |
+| Report 14.0 | 2026-05-29 | REFACTOR 프로그램·Phase 0·OI-01·Wave 1 매핑 |
 
 ---
 
