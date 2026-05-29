@@ -1,7 +1,7 @@
-# MagicSquare_30
+# MagicSquare_37
 
 4×4 마방진(Magic Square)을 다루는 학습·실습 프로젝트입니다.  
-현재 단계는 **Dual-Track TDD · Clean Architecture 설계**까지 완료되었으며, **구현·테스트 코드는 아직 없습니다.**
+현재 단계는 **Dual-Track TDD · Clean Architecture** — 설계 완료 후 **Entity·Boundary·Golden Master 구현·테스트 진행 중** (AC-FR-01-01 GREEN 일부, FR-05 success path).
 
 ---
 
@@ -85,23 +85,23 @@ Why #3  그 검증을 구현 전에 예시(계약)로 고정한다 (TDD)
 
 ## 아직 결정하지 않은 것
 
-- **언어·런타임·테스트 프레임워크:** 미정
-- **UI 실제 화면:** Boundary 계약만 정의됨
+- **계약 SSOT (OI-01):** 학습용 `INVALID_SIZE` vs PRD `ERR_GRID_ROWS`/`ERR_GRID_COLS` ([코드 리뷰 To-Do](#코드-리뷰-to-do) P1)
+- **Control 레이어 명칭:** `ApplicationService` vs `SolvePartialMagicSquare` (Report/09·`docs/test_plan.md`)
 
 ---
 
 ## 저장소 구조
 
 ```
-MagicSquare_30/
+MagicSquare_37/
 ├── README.md
+├── docs/          # test_plan.md, PRD
+├── src/magic_square/
+│   ├── entity/    # domain (FR-02~05)
+│   └── boundary/  # ScreenBoundary, PyQt UI
+├── tests/         # boundary, entity, golden_master
 ├── Report/
-│   ├── 01.MagicSquare_ProblemDefinition_Report.md
-│   └── 02.MagicSquare_DualTrack_CleanArchitecture_Design.md
-├── Prompt/
-│   └── 02.MagicSquare_DualTrack_CleanArchitecture_Transcript.md
-└── Prompting/
-    └── 01.MagicSquare_ProblemDefinition_Reportt.md
+└── Prompt/
 ```
 
 | 경로 | 설명 |
@@ -125,14 +125,61 @@ MagicSquare_30/
 | AC-FR-01-01 RED 테스트 (`test_ac_fr_01_01_invalid_size.py`) | 완료 (33건) |
 | AC-FR-01-01 GREEN (`grid=None`) | 완료 (G1, 16/33) |
 | AC-FR-01-01 GREEN (`[]`, `[[]]*4`, `3×4`) | 진행 중 (G2~G4) |
+| AC-FR-01-03 empty count / FR-05 success / Golden Master | 완료 |
+| Entity FR-02~05 (validator, two-blank solver) | 완료 |
+| `control/` 레이어 | 미착수 (ECB 리팩터 대상) |
+| 코드 리뷰 P0 (비-list·열 수·값 범위) | 미착수 — [코드 리뷰 To-Do](#코드-리뷰-to-do) |
+
+---
+
+## 코드 리뷰 To-Do
+
+> 출처: code-reviewer (2026-05-29). **REFACTOR**(validator/control 분리, `ui_boundary`, `main_window` DI)는 관련 스위트 **GREEN** + Golden Master 통과 후 진행.  
+> 규칙: `.cursor/rules/magicsquare-tdd-testing.mdc` §REFACTOR, `magicsquare-ecb-architecture.mdc`, `docs/test_plan.md` §6·§8.
+
+### P0 — Critical (merge / REFACTOR 전)
+
+- [ ] **비-list 입력 가드** — `ScreenBoundary.solve()`: `grid`가 `list`가 아니면 `FailureResult` 반환 (`None`/`[]` 제외한 `"abcd"`, `{}`, `16` 등). PRD §13 예외 전파 금지.
+- [ ] **열 수 검증 (IN-01 / AC-02)** — 각 행 `len(row) == 4` → `ERR_GRID_COLS` + 고정 message (`docs/test_plan.md` UT-A-05/06).
+- [ ] **값 범위 검증 (IN-04 / AC-04)** — 셀 ∈ `{0} ∪ [1,16]` → `ERR_VALUE_RANGE`; `tests/boundary/test_ac_fr_01_04_*` 추가.
+- [ ] **Domain 전제 위반 매핑** — `TypeError` / `IndexError` 등을 Boundary `FailureResult`로 변환 (uncaught exception 방지).
+
+### P1 — Important
+
+- [ ] **계약 SSOT (OI-01)** — 학습용 `INVALID_SIZE` vs PRD `ERR_GRID_ROWS`/`ERR_GRID_COLS` 정책 확정 후 코드·테스트·문서 일괄 정렬.
+- [ ] **`STUB` 제거** — `screen_boundary.py` OUT 검증 실패 시 `ERR_INTERNAL_CONTRACT`(또는 DN-03 확정값)으로 매핑.
+- [ ] **ECB: `control/` 도입** — `SolvePartialMagicSquare` / `ApplicationService.solve_puzzle`; `boundary → control → entity` (직접 `entity` import 금지).
+- [ ] **`main_window.py` DI** — `PuzzleDomainResolver` 직접 생성 제거; injected `ScreenBoundary`(또는 `ui_boundary`)만 사용.
+- [ ] **도메인 상수 SSOT** — `boundary/invalid_size.py`, `grid_panel.py`의 `GRID_SIZE`/`EMPTY_CELL` 등 → `entity/constants` 또는 control 경유.
+- [ ] **Entity no-solution 단위 테스트** — `NoValidPlacementError` (GM-TC-05 격자, `tests/entity/`).
+
+### P2 — REFACTOR 선행 (테스트 없이 구조 이동 금지)
+
+- [ ] **`tests/control/`** — invalid 시 `execute`/`solve` **0회**; valid 시 `int[6]`·1-index (`docs/test_plan.md` §6, Report/09 D-SOL-01~04).
+- [ ] **Boundary facade 격리** — Control 추출 후 `ScreenBoundary` → `ApplicationService.solve_puzzle` **0회** spy (`test_plan.md` §6.3).
+- [ ] **`tests/boundary/` GREEN 완료** — AC-FR-01-01 G2~G4 + AC-FR-01-04 + EX-02 비-list 케이스.
+- [ ] **`tests/` for `main_window`** — UI는 facade mock만; entity 직접 wiring 금지 검증 (pytest-qt 또는 로직 분리).
+- [ ] **REFACTOR 게이트** — `pytest -m golden_master` + boundary/entity/control 스위트 green, 커버리지 Boundary≥85% / Control≥85%.
+
+### 잘 유지할 것 (리뷰 통과 — 작업 불필요)
+
+- [x] Boundary mock 격리 (`tests/boundary/conftest.py`, `resolve` 0회)
+- [x] Golden Master GM-TC-01~05 (`tests/golden_master/`)
+- [x] Domain `deepcopy`·FR-02~05 핵심 (`tests/entity/`)
+- [x] Forbidden 패턴 준수 (`print`, bare except, skip/xfail 없음)
+
+### 한 줄 원칙
+
+REFACTOR는 계약·행위 불변 하에 구조만 옮기므로, GREEN 스위트 없이 ECB 분리 시 계약 붕괴를 검출할 수 없다.
 
 ---
 
 ## 다음 단계 (권장 순서)
 
-1. **GREEN 구현** — AC-FR-01-01 Boundary (`ScreenBoundary`) — [GREEN To-Do](#green-단계-to-do-리스트) 참고
-2. **REFACTOR** — validator 분리 등 (GREEN 전체 완료 후)
-3. **커버리지** — Domain 95%+ / Boundary 85%+ / Data 80%+
+1. **P0 GREEN** — [코드 리뷰 To-Do](#코드-리뷰-to-do) P0 (입력 가드·열 수·값 범위)
+2. **GREEN 구현** — AC-FR-01-01 Boundary (`ScreenBoundary`) — [GREEN To-Do](#green-단계-to-do-리스트) G2~G4
+3. **REFACTOR** — P2 완료 후 validator/control 분리 (`control/`, `ui_boundary`)
+4. **커버리지** — Domain 95%+ / Boundary 85%+ / Control 85%+
 
 ---
 
@@ -361,6 +408,7 @@ TestAcFr0101ParametrizedContract::test_param_grid_resolve_zero_calls[grid3]
 | 보고서 2.0 | 2026-05-28 | Dual-Track · Clean Architecture 설계 |
 | README 1.1 | 2026-05-28 | 설계·Prompt Export 반영 |
 | README 1.2 | 2026-05-29 | AC-FR-01-01 GREEN 단계 To-Do (G1~G4) 추가 |
+| README 1.3 | 2026-05-29 | 코드 리뷰 To-Do (P0~P2), 현재 상태·저장소 구조 갱신 |
 
 ---
 
